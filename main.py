@@ -1,46 +1,84 @@
 import streamlit as st
 import pandas as pd
 
-# 글 생성을 위한 함수
-def generate_record(element, student_output):
-    # 기본 프롬프트 틀 생성
-    base_prompt = f"""
-고등학교 1학년 통합과학1 수업에서 학생이 주기율표 원소 중 '{element}'에 대해 조사하고, 다음과 같은 산출물을 제출하였음:
+st.set_page_config(layout="wide")
 
-\"\"\"{student_output}\"\"\"
+# Function to generate the descriptive text for student records
+def generate_student_record_text(element_info, impact_info):
+    # This is a placeholder. In a real application, you'd likely
+    # use a more sophisticated method, possibly involving an LLM,
+    # to generate text that truly reflects the guidelines.
+    # For now, it will combine the inputs and apply the rules.
 
-이 활동을 통해 학생이 무엇을 배우고 어떤 역량이 향상되었는지를 추론하고, 교사의 관찰자 시점으로 생활기록부용 문장을 작성하시오. 아래 조건을 반드시 따르시오:
+    # Example of how to combine and apply rules for the response based on the prompt:
+    text = f"주기율표 원소에 대한 흥미와 탐구 의지를 바탕으로 {element_info}를 심층적으로 조사하고, 해당 원소가 인간 생활 및 기술 발전에 미친 영향을 다각도로 분석하여 {impact_info}에 대해 명확하게 제시함. 이 과정에서 자료를 수집하고 핵심 정보를 선별하는 능력이 향상되었음. 특히, 과학적 지식을 실제 현상과 연결하려는 적극적인 태도가 관찰됨. 글쓰기 활동을 통해 복잡한 과학 개념을 이해하기 쉽게 설명하는 표현력이 크게 발달함. 초기에는 기본적인 정보 나열에 그쳤으나, 과제 수행 후에는 원소의 특성이 사회에 미치는 영향까지 심도 있게 탐구하여 그 의미를 파악하는 뛰어난 역량을 보임. 이러한 탐구 활동은 과학적 사고력을 증진시키고, 정보를 비판적으로 분석하여 새로운 관점을 제시하는 능력을 배양함."
+    
+    # Apply length constraint (approx 420 chars) - this might require some tuning
+    # For this example, I'll just ensure it doesn't exceed a certain length
+    # In a real LLM scenario, you'd prompt the LLM to adhere to the length
+    if len(text) > 420:
+        text = text[:420] + "..." # Truncate and add ellipsis
 
-- '학생', '그는', '그가', '그의' 등 사람을 지칭하는 주어는 쓰지 마시오.
-- 문장은 반드시 명사형 어미(~함, ~됨 등)로 끝내시오. 문장 끝은 아래 표현 중 하나로만 마무리하시오:
-활동함, 표현함, 설명함, 발표함, 안내함, 제작함, 작성함, 관찰됨, 주장함, 설득함, 실천함, 기록함, 작성함, 만듦, 토론함, 구성함, 생활함, 씀, 감상함, 평가함, 비교함, 분류함, 나열함, 표시함, 나타냄, 구상함, 구체화함, 선택함, 읽음, 해석함, 활용함, 분석함, 이야기함, 보충함, 따라함, 모방함, 정리함, 달성함, 도달함, 마무리함, 연결함, 찾음, 발견함, 설습함, 적음, 그림, 파악함, 찾음, 표시함, 점검함, 찾아냄, 계획함, 추진함, 보고함, 수행함, 보임, 연습함, 적용함, 참참함, 조사함, 발굴함, 제출함, 질문함, 대답함, 체험함, 시청함, 해결함, 완성함, 측정함, 자신의 생각을 밝힘, 의견을 나눔, 주장을 펼침, 자료를 수집함, 의견을 제시함, 해결법을 제시함, 뛰어남, 도와줌, 자질이 있음
+    # Ensure ending words are from the approved list. This is a simple check;
+    # a more robust solution might involve rephrasing or an LLM to guarantee adherence.
+    approved_endings = [
+        "활동함", "표현함", "설명함", "발표함", "안내함", "제작함", "작성함", "관찰됨", "주장함", "설득함",
+        "실천함", "기록함", "작성함", "만듦", "토론함", "구성함", "생활함", "씀", "감상함", "평가함",
+        "비교함", "분류함", "나열함", "표시함", "나타냄", "구상함", "구체화함", "선택함", "읽음", "해석함",
+        "활용함", "분석함", "이야기함", "보충함", "따라함", "모방함", "정리함", "달성함", "도달함",
+        "마무리함", "연결함", "찾음", "발견함", "설습함", "적음", "그림", "파악함", "찾음", "표시함",
+        "점검함", "찾아냄", "계획함", "추진함", "보고함", "수행함", "보임", "연습함", "적용함",
+        "참참함", "조사함", "발굴함", "제출함", "질문함", "대답함", "체험함", "시청함", "해결함",
+        "완성함", "측정함", "자신의 생각을 밝힘", "의견을 나눔", "주장을 펼침", "자료를 수집함",
+        "의견을 제시함", "해결법을 제시함", "뛰어남", "도와줌", "자질이 있음"
+    ]
+    
+    # Simple check for the last word; ideally, the generation should ensure this
+    last_word = text.strip().split()[-1]
+    if last_word not in approved_endings:
+        # If the generated text doesn't end with an approved word, append one that makes sense
+        # This is a very basic fix; for more complex needs, an LLM would be ideal
+        if "향상되었음." in text:
+            text = text.replace("향상되었음.", "향상되었음. 뛰어남.")
+        elif "관찰됨." in text:
+            text = text.replace("관찰됨.", "관찰됨. 보임.")
+        elif "발달함." in text:
+            text = text.replace("발달함.", "발달함. 보임.")
+        elif "배양함." in text:
+            text = text.replace("배양함.", "배양함. 보임.")
 
-- 글자 수는 반드시 420자 내외로 작성하시오.
-- 학생의 산출물 내용을 기반으로 실질적인 변화, 성장, 학습 내용을 중심으로 서술하시오.
-"""
-    # 현재는 예시 출력을 리턴합니다. 실제 사용 시 OpenAI API로 연결 필요.
-    # 아래는 예시 출력
-    example_output = f"{element}에 대한 탐구를 통해 원소의 특성과 주기율표 내 위치의 의미를 이해하고, 해당 원소가 생활 속 기술에 미친 영향을 체계적으로 조사하여 작성함. 과제 수행을 통해 정보 수집 및 요약 능력이 향상되고, 복잡한 내용을 구조화하는 표현력이 뚜렷하게 발전함. 과학적 사실에 대한 이해를 바탕으로 탐구 내용을 정리하고 논리적으로 설명하는 과학적 의사소통 역량이 드러남. 정보의 출처를 명확히 하고 객관적 근거에 기반한 서술을 완성함."
-    return example_output[:420]  # 글자 수 제한
+    return text
 
-# 스트림릿 앱 UI
-st.title("통합과학 생활기록부 자동 작성기")
-uploaded_file = st.file_uploader("CSV 파일을 업로드하세요", type="csv")
+st.title("생활기록부 '과목별 세부능력 및 특기사항' 자동 생성기")
+st.write("CVS 파일을 업로드하면, B열과 C열의 정보를 바탕으로 D열에 '과목별 세부능력 및 특기사항'이 자동 생성됩니다.")
+
+uploaded_file = st.file_uploader("CSV 파일을 업로드하세요.", type="csv")
 
 if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
+    try:
+        df = pd.read_csv(uploaded_file)
 
-    if "B" in df.columns and "C" in df.columns:
-        df["D"] = df.apply(lambda row: generate_record(row["B"], row["C"]), axis=1)
-        st.success("생활기록부 문장이 자동으로 생성되었습니다.")
-        st.dataframe(df)
+        # Ensure B and C columns exist
+        if 'B' in df.columns and 'C' in df.columns:
+            st.success("파일이 성공적으로 업로드되었습니다. 내용을 처리 중입니다.")
 
-        csv = df.to_csv(index=False).encode('utf-8-sig')
-        st.download_button(
-            label="결과 CSV 다운로드",
-            data=csv,
-            file_name="생활기록부_결과.csv",
-            mime="text/csv",
-        )
-    else:
-        st.error("CSV 파일에 'B'열과 'C'열이 포함되어 있어야 합니다.")
+            # Apply the function to create the 'D' column
+            df['D'] = df.apply(
+                lambda row: generate_student_record_text(row['B'], row['C']), axis=1
+            )
+
+            st.subheader("처리된 데이터 미리보기")
+            st.dataframe(df)
+
+            csv_output = df.to_csv(index=False, encoding='utf-8-sig') # 'utf-8-sig' for proper Korean encoding in Excel
+            st.download_button(
+                label="처리된 CSV 파일 다운로드",
+                data=csv_output,
+                file_name="processed_student_records.csv",
+                mime="text/csv",
+            )
+        else:
+            st.error("업로드된 CSV 파일에 'B' 또는 'C' 열이 없습니다. 컬럼명을 확인해주세요.")
+
+    except Exception as e:
+        st.error(f"파일 처리 중 오류가 발생했습니다: {e}")
